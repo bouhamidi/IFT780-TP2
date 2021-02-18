@@ -55,9 +55,12 @@ class Dense:
         
         # TODO
         # Ajouter code ici
-        # Calculer W*x + b
-        # suivi de la fonction d'activation
-        # N'oubliez pas de mettre les bonnes variables dans la cache!
+        # We calculate forward pass
+        H = X.dot(self.W) + self.b
+        A = self.activation['forward'](H)
+
+        # We update the cache
+        self.cache = {'H': H, 'A': A, 'X': X}
 
         return A
 
@@ -73,12 +76,17 @@ class Dense:
             ndarray -- Dérivée de la loss par rapport à l'entrée de la couche.
         """
         # TODO
-        # Ajouter code ici
-        # récupérer le contenu de la cache
-        # calculer le gradient de la loss par rapport à W et b et mettre les résultats dans self.dW et self.db
-        
+        # We compute gradient of the loss according to W
+        dA_dH = self.activation['backward'](self.cache['H'])        # (NxOUT numpy array)
+        dH_dW = self.cache['X']                                     # (NxIN numpy array)
+        dL_dH = dA * dA_dH                                          # (NxOUT numpy array)
+        self.dW = dH_dW.T.dot(dL_dH) + self.reg*self.W              # (InxOUT numpy array)
+
+        # We compute the gradient of the loss according to the bias
+        self.db = dL_dH.sum(axis=0) + self.reg*self.b               # (1xOUT numpy array)
+
         # Retourne la derivee de la couche courante par rapport à son entrée * la backProb dA
-        return -1
+        return dA.dot(self.W.T)
 
     def get_params(self):
         return {'W': self.W, 'b': self.b}
