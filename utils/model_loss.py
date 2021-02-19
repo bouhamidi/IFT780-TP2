@@ -39,9 +39,10 @@ def cross_entropy_loss(scores, t, reg, model_params):
     loss = -1 * B.mean()
 
     # We add the regularization loss
-    for layer in model_params.keys():
-        if len(model_params[layer]) != 0:
-            W, b = model_params[layer]['W'], model_params[layer]['b']
+    for _, layer in model_params.items():
+        params = layer.keys()
+        if 'W' in params and 'b' in params:
+            W, b = layer['W'], layer['b']
             loss += 0.5*reg*(pow(np.linalg.norm(W), 2)+pow(np.linalg.norm(b), 2))
 
     # We compute the gradient for the score (dL_dS * dS_dScores) = -1/S * S(H -S)
