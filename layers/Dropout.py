@@ -76,7 +76,7 @@ class Dropout:
         # Ajouter code ici
 
         if mode == 'train':
-            dX = (dX*self.cache)
+            dX = dX*self.cache
 
         return dX
 
