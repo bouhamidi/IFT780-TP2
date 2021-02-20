@@ -27,6 +27,25 @@ def cross_entropy_loss(scores, t, reg, model_params):
     
     # TODO
     # Ajouter code ici
+    
+    # We calculate a matrix with one-hot encoding as rows
+    H = np.eye(C)[t]
+
+    # We take the exponential of the scores and apply the softmax
+    softmax_output = np.exp(scores)                                       # (NxC numpy array)
+    softmax_output /= softmax_output.sum(axis=1).reshape((N, 1))          # (NxC numpy array)
+
+    # We compute the loss without regularization
+    B = np.log(np.sum(softmax_output*H, axis=1))                          # (Nx1 numpy array)
+    loss = -1 * B.mean()
+
+    # We add the regularization loss
+    for layer in model_params.keys():
+        W, b = model_params[layer]['W'], model_params[layer]['b']
+        loss += 0.5*reg*(pow(np.linalg.norm(W), 2)+pow(np.linalg.norm(b), 2))
+
+    # We compute the gradient for the score (dL_dS * dS_dScores) = -1/S * S(H -S)
+    dScores = (softmax_output-H)/N
 
     return loss, dScores, softmax_output
 
