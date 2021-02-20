@@ -85,7 +85,20 @@ class Dense:
         # calculer le gradient de la loss par rapport à W et b et mettre les résultats dans self.dW et self.db
         
         # Retourne la derivee de la couche courante par rapport à son entrée * la backProb dA
-        return -1
+        
+        # We compute gradient of the loss according to W
+        dA_dH = self.activation['backward'](self.cache['H'])        # (NxOUT numpy array)
+        dH_dW = self.cache['X']                                     # (NxIN numpy array)
+        dL_dH = dA * dA_dH                                          # (NxOUT numpy array)
+        self.dW = dH_dW.T.dot(dL_dH) + self.reg*self.W              # (InxOUT numpy array)
+
+        # We compute the gradient of the loss according to the bias
+        self.db = dL_dH.sum(axis=0) + self.reg*self.b               # (1xOUT numpy array)
+
+        # Retourne la derivee de la couche courante par rapport à son entrée * la backProb dA
+        return dA.dot(self.W.T)
+        
+        #return -1
 
     def get_params(self):
         return {'W': self.W, 'b': self.b}
