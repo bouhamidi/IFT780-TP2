@@ -58,6 +58,13 @@ class Dense:
         # Calculer W*x + b
         # suivi de la fonction d'activation
         # N'oubliez pas de mettre les bonnes variables dans la cache!
+        
+        # We calculate forward pass
+        H = X.dot(self.W) + self.b
+        A = self.activation['forward'](H)
+
+        # We update the cache
+        self.cache = {'H': H, 'A': A, 'X': X}
 
         return A
 
