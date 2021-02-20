@@ -39,6 +39,23 @@ class Dropout:
         # "seed" sert à initialiser np.random
         # ne pas oublier de mettre dans la self.cache le masque de dropout.
         
+        #A = np.copy(X)
+        
+        mask = None
+        keep_rate = 1 - self.drop_rate
+        
+        if seed != None:
+            np.random.seed(seed)
+        
+        if mode == 'train':
+            mask = ( np.random.rand(*A.shape) < keep_rate ) / keep_rate
+            A = (A * mask)
+        
+        elif mode == 'test':
+            pass
+        
+        self.cache = mask
+        
         return A
 
     def backward(self, dA, **kwargs):
