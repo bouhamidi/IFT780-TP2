@@ -78,6 +78,16 @@ class Dropout:
         # Ajouter code ici
         # Rétro-propagation du gradient en fonction du mode 'train' ou 'test'
         # n'oubliez pas que le "masque" de dropout est dans la cache!
+        
+        mask = self.cache
+        keep_rate = 1 - self.drop_rate
+        
+        if mode == 'train':
+            
+            dX = (dA * mask) / keep_rate
+        
+        elif mode == 'test':
+            pass
 
         return dX
 
