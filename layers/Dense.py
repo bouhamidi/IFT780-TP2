@@ -97,8 +97,6 @@ class Dense:
 
         # Retourne la derivee de la couche courante par rapport à son entrée * la backProb dA
         return dA.dot(self.W.T)
-        
-        #return -1
 
     def get_params(self):
         return {'W': self.W, 'b': self.b}
