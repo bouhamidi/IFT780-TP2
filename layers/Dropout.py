@@ -39,22 +39,19 @@ class Dropout:
         # "seed" sert à initialiser np.random
         # ne pas oublier de mettre dans la self.cache le masque de dropout.
         
-        #A = np.copy(X)
-        
         mask = None
         keep_rate = 1 - self.drop_rate
         
-        if seed != None:
+        if seed is not None:
             np.random.seed(seed)
         
         if mode == 'train':
-            mask = ( np.random.rand(*A.shape) < keep_rate ) / keep_rate
-            A = (A * mask)
+            mask = np.random.binomial(1, keep_rate, size=A.shape) / keep_rate
+            self.cache = mask
+            A = A * mask
         
         elif mode == 'test':
             pass
-        
-        self.cache = mask
         
         return A
 
@@ -70,7 +67,7 @@ class Dropout:
         Returns:
             ndarray -- Dérivée de la loss par rapport à l'entrée de la couche.
         """
-
+ 
         mode = kwargs.get('mode', 'train')
         dX = dA
         
@@ -80,11 +77,9 @@ class Dropout:
         # n'oubliez pas que le "masque" de dropout est dans la cache!
         
         mask = self.cache
-        keep_rate = 1 - self.drop_rate
         
         if mode == 'train':
-            
-            dX = (dA * mask) / keep_rate
+            dX = dX * mask
         
         elif mode == 'test':
             pass
