@@ -46,6 +46,25 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
     # Astuces: vous pouvez utiliser la fonction np.pad pour le remplissage.     #
     #############################################################################
     
+    # out initialization
+    H_out = int( 1 + (H + 2 * pad - FH) / stride )
+    W_out = int( 1 + (W + 2 * pad - FW) / stride )
+    out_shape = (N, F, H_out, W_out)
+    out = np.zeros(out_shape)
+    
+    # Zero-Padding
+    pad_2D = (pad, pad)
+    pad_shape = ((0, 0), (0, 0), pad_2D, pad_2D)        # x.shape = (N, C, H, W) so Padding must be applied 
+    x_pad = np.pad(x, pad_shape, 'constant')            #                        only on H and W dimensions
+    
+    # Naive Convolution    
+    for n in range(N):
+        for f in range(F):
+            for h_conv in range(H_out):
+                for w_conv in range(W_out):
+                    x_slice = x_pad[ n, :, h_conv*stride:h_conv*stride + FH, w_conv*stride:w_conv*stride + FW ]
+                    out[n, f, h_conv, w_conv] = np.sum(x_slice * w[f]) + b[f]
+    
     #############################################################################
     #                             FIN DE VOTRE CODE                             #
     #############################################################################
