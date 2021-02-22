@@ -54,25 +54,20 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
     x_pad = np.pad(x, ((0,), (0,), (pad,), (pad,)), mode='constant', constant_values=0)
 
     # We initialize a list that will store each image convolution
-    out = []
+    out = np.zeros((N, F, H_prime, W_prime))
 
     # We execute the convolutions of each image with for loops
     for n in range(N):
-
-        # Zeros filled numpy array to store the convolution of one image
-        image_conv = np.zeros((F, H_prime, W_prime))
-
         for i in range(H_prime):
             h_index = stride*i
             for j in range(W_prime):
                 w_index = stride*j
                 for f in range(F):
-                    image_conv[f, i, j] = (w[f] * x_pad[n:n+1, :, h_index:h_index+FH, w_index:w_index+FW]).sum() + b[f]
+                    out[n, f, i, j] = (w[f] * x_pad[n:n+1, :, h_index:h_index+FH, w_index:w_index+FW]).sum() + b[f]
 
-        # We add the convolution to a list of convolution
-        out.append(image_conv)
-
-    out = np.array(out)
+    # We save H' and W' in the conv_params
+    conv_param['H_prime'] = H_prime
+    conv_param['W_prime'] = W_prime
     #############################################################################
     #                             FIN DE VOTRE CODE                             #
     #############################################################################
@@ -99,8 +94,35 @@ def backward_convolution_naive(dout, cache):
     #############################################################################
     # TODO: Implémentez la rétropropagation pour la couche de convolution       #
     #############################################################################
-    
+    # We retrieve H', W, pad and stride from the conv params
+    H_prime, W_prime = conv_param['H_prime'], conv_param['W_prime']
+    pad = conv_param['pad']
+    stride = conv_param['stride']
 
+    # We extract helpful constant from data and filter shapes
+    N, C, H, W = x_pad.shape
+    F, C, FH, FW = w.shape
+
+    # We initialize a list that will store gradient of each element in the batch
+    dx = np.zeros(x_pad.shape)
+    dw = np.zeros(w.shape)
+    db = np.zeros(b.shape)
+
+    # We calculate the backprop using for loops
+    for n in range(N):
+
+        for i in range(H_prime):
+            h_index = stride*i
+            for j in range(W_prime):
+                w_index = stride*j
+                for f in range(F):
+
+                    dout_slice = dout[n, f, i, j]
+                    dw[f] += dout_slice * x_pad[n, :, h_index:h_index+FH, w_index:w_index+FW]
+                    db[f] += dout_slice
+                    dx[n, :, h_index:h_index+FH, w_index:w_index+FW] += dout_slice * w[f]
+
+    dx = dx[:, :, 0:(H-pad), 0:(W-pad)]
     #############################################################################
     #                             FIN DE VOTRE CODE                             #
     #############################################################################
