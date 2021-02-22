@@ -92,6 +92,28 @@ def backward_convolution_naive(dout, cache):
     # TODO: Implémentez la rétropropagation pour la couche de convolution       #
     #############################################################################
     
+    N, C, H, W = x_pad.shape
+    F, C, FH, FW = w.shape
+
+    stride = conv_param['stride']
+    
+    N, F, H_out, W_out = dout.shape
+    
+    # Initialization
+    dx = np.zeros(x_pad.shape)
+    dw = np.zeros(w.shape)
+    db = np.sum(dout, axis=(0,2,3))   # dout.shape = (N, F, H', W') so we are summing the N, H', W' dimensions
+    
+    # Naive Convolution    
+    for n in range(N):
+        for f in range(F):
+            for h_conv in range(H_out):
+                for w_conv in range(W_out):
+                    # dw = convolution (x_pad, dout)
+                    x_slice = x_pad[ n, :, h_conv*stride:h_conv*stride + FH, w_conv*stride:w_conv*stride + FW ]
+                    dw[f] += x_slice * dout[n, f, h_conv, w_conv]
+                    # dx = convolution (w, dout)
+                    dx[ n, :, h_conv*stride:h_conv*stride + FH, w_conv*stride:w_conv*stride + FW ] += w[f] * dout[n, f, h_conv, w_conv]
 
     #############################################################################
     #                             FIN DE VOTRE CODE                             #
