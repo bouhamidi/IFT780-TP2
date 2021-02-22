@@ -45,7 +45,32 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
     # TODO: Implémentez la propagation pour la couche de convolution.           #
     # Astuces: vous pouvez utiliser la fonction np.pad pour le remplissage.     #
     #############################################################################
-    
+
+    # We save H' and W' values
+    H_prime = int(1 + (H + 2 * pad - FH)/stride)
+    W_prime = int(1 + (W + 2 * pad - FW)/stride)
+
+    # We add the padding to x
+    x_pad = np.pad(x, pad, mode='constant', constant_values=0)
+
+    # We initialize a list that will store each image convolution
+    out = []
+
+    # We execute the convolutions of each image with for loops
+    for n in range(N):
+
+        # Zeros filled numpy array to store the convolution of one image
+        image_conv = np.zeros((F, H_prime, W_prime))
+
+        for i in range(H_prime):
+            for j in range(W_prime):
+                for f in range(F):
+                    image_conv[f, i, j] = (w * x_pad[n, :, i:i+FH, j:j+FW]).sum() + b[f]
+
+        # We add the convolution to a list of convolution
+        out.append(image_conv)
+
+    out = np.array(out)
     #############################################################################
     #                             FIN DE VOTRE CODE                             #
     #############################################################################
