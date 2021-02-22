@@ -35,11 +35,32 @@ class Dropout:
         A = X
         # TODO 
         # Ajouter code ici
-        # Appliquer un dropout en fonction du mode 'train' ou 'test'
-        # "seed" sert à initialiser np.random
-        # ne pas oublier de mettre dans la self.cache le masque de dropout.
-        
-        return A
+
+        # We set the seed
+        np.random.seed(seed)
+
+        if mode == 'test':
+            return A
+
+        # We apply dropout depending on the mode 'train' or 'test'
+        elif mode == 'train':
+
+            # We save the probability of a neuron to not be set to 0
+            p = 1 - self.drop_rate
+
+            # We create the mask
+            mask = np.random.binomial(1, p, size=A.shape) / p
+
+            # We save the mask in the cache
+            self.cache = mask
+
+            # We apply the mask to A
+            A = A * mask
+
+            return A
+
+        else:
+            raise Exception("Invalid forward mode %s" % mode)
 
     def backward(self, dA, **kwargs):
         """Rétro-propagation pour la couche de dropout inversé.
@@ -56,17 +77,22 @@ class Dropout:
 
         mode = kwargs.get('mode', 'train')
         dX = dA
-        
-        # TODO 
-        # Ajouter code ici
-        # Rétro-propagation du gradient en fonction du mode 'train' ou 'test'
-        # n'oubliez pas que le "masque" de dropout est dans la cache!
 
-        return dX
+        # TODO
+        # Ajouter code ici
+        if mode == 'test':
+            return dX
+
+        elif mode == 'train':
+            dX = dX*self.cache
+            return dX
+
+        else:
+            raise Exception("Invalid forward mode %s" % mode)
 
     def get_params(self):
         return {}
-        
+
     def get_gradients(self):
         return {}
 
