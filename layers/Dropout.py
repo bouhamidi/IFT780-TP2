@@ -39,8 +39,11 @@ class Dropout:
         # We set the seed
         np.random.seed(seed)
 
+        if mode == 'test':
+            return A
+
         # We apply dropout depending on the mode 'train' or 'test'
-        if mode == 'train':
+        elif mode == 'train':
 
             # We save the probability of a neuron to not be set to 0
             p = 1 - self.drop_rate
@@ -54,7 +57,10 @@ class Dropout:
             # We apply the mask to A
             A = A * mask
 
-        return A
+            return A
+
+        else:
+            raise Exception("Invalid forward mode %s" % mode)
 
     def backward(self, dA, **kwargs):
         """Rétro-propagation pour la couche de dropout inversé.
@@ -74,11 +80,15 @@ class Dropout:
 
         # TODO
         # Ajouter code ici
+        if mode == 'test':
+            return dX
 
-        if mode == 'train':
-            dX = (dX*self.cache)
+        elif mode == 'train':
+            dX = dX*self.cache
+            return dX
 
-        return dX
+        else:
+            raise Exception("Invalid forward mode %s" % mode)
 
     def get_params(self):
         return {}
