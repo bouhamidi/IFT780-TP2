@@ -51,7 +51,7 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
     W_prime = int(1 + (W + 2 * pad - FW)/stride)
 
     # We add the padding to x
-    x_pad = np.pad(x, pad, mode='constant', constant_values=0)
+    x_pad = np.pad(x, ((0,), (0,), (pad,), (pad,)), mode='constant', constant_values=0)
 
     # We initialize a list that will store each image convolution
     out = []
@@ -63,9 +63,11 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
         image_conv = np.zeros((F, H_prime, W_prime))
 
         for i in range(H_prime):
+            h_index = stride*i
             for j in range(W_prime):
+                w_index = stride*j
                 for f in range(F):
-                    image_conv[f, i, j] = (w * x_pad[n, :, i:i+FH, j:j+FW]).sum() + b[f]
+                    image_conv[f, i, j] = (w[f] * x_pad[n:n+1, :, h_index:h_index+FH, w_index:w_index+FW]).sum() + b[f]
 
         # We add the convolution to a list of convolution
         out.append(image_conv)
