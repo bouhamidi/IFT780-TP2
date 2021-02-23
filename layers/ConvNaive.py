@@ -46,18 +46,18 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
     # Astuces: vous pouvez utiliser la fonction np.pad pour le remplissage.     #
     #############################################################################
     
-    # out initialization
+    # We initialize the out tensor
     H_out = int( 1 + (H + 2 * pad - FH) / stride )
     W_out = int( 1 + (W + 2 * pad - FW) / stride )
     out_shape = (N, F, H_out, W_out)
     out = np.zeros(out_shape)
     
-    # Zero-Padding
+    # We apply zero-Padding on x
     pad_2D = (pad, pad)
-    pad_shape = ((0, 0), (0, 0), pad_2D, pad_2D)        # x.shape = (N, C, H, W) so Padding must be applied 
-    x_pad = np.pad(x, pad_shape, 'constant')            #                        only on H and W dimensions
+    pad_shape = ((0, 0), (0, 0), pad_2D, pad_2D)
+    x_pad = np.pad(x, pad_shape, 'constant')
     
-    # Naive Convolution    
+    # Naive Forward Convolution    
     for n in range(N):
         for f in range(F):
             for h_conv in range(H_out):
@@ -92,29 +92,36 @@ def backward_convolution_naive(dout, cache):
     # TODO: Implémentez la rétropropagation pour la couche de convolution       #
     #############################################################################
     
+    # We extract dimensions
     N, C, H, W = x_pad.shape
-    F, C, FH, FW = w.shape
-
+    F, _, FH, FW = w.shape
+    _, _, H_out, W_out = dout.shape
+    
+    # We retrie the 'pad' and 'stride' parameters from conv_param
+    pad = conv_param['pad']
     stride = conv_param['stride']
     
-    N, F, H_out, W_out = dout.shape
-    
-    # Initialization
-    dx = np.zeros(x_pad.shape)
+    # We initialize the gradients
+    dx_pad = np.zeros(x_pad.shape)
     dw = np.zeros(w.shape)
-    db = np.sum(dout, axis=(0,2,3))   # dout.shape = (N, F, H', W') so we are summing the N, H', W' dimensions
+    db = np.zeros(b.shape)
     
-    # Naive Convolution    
+    # Naive Backward Convolution    
     for n in range(N):
         for f in range(F):
             for h_conv in range(H_out):
                 for w_conv in range(W_out):
+                    dout_slice = dout[n, f, h_conv, w_conv]
                     # dw = convolution (x_pad, dout)
                     x_slice = x_pad[ n, :, h_conv*stride:h_conv*stride + FH, w_conv*stride:w_conv*stride + FW ]
-                    dw[f] += x_slice * dout[n, f, h_conv, w_conv]
-                    # dx = convolution (w, dout)
-                    dx[ n, :, h_conv*stride:h_conv*stride + FH, w_conv*stride:w_conv*stride + FW ] += w[f] * dout[n, f, h_conv, w_conv]
-
+                    dw[f] += x_slice * dout_slice
+                    # dx_pad = convolution (w, dout)
+                    dx_pad[ n, :, h_conv*stride:h_conv*stride + FH, w_conv*stride:w_conv*stride + FW ] += w[f] * dout_slice
+                    # db
+                    db[f] += dout_slice
+                    
+    # We remove zero padding
+    dx = dx_pad[:, :, 0:(H-pad), 0:(W-pad)]
     #############################################################################
     #                             FIN DE VOTRE CODE                             #
     #############################################################################
