@@ -51,7 +51,7 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
     W_prime = int(1 + (W + 2 * pad - FW)/stride)
 
     # We add the padding to x
-    x_pad = np.pad(x, ((0,), (0,), (pad,), (pad,)), mode='constant', constant_values=0)
+    x_pad = np.pad(x, ((0,), (0,), (pad,), (pad,)))
 
     # We initialize a list that will store each image convolution
     out = np.zeros((N, F, H_prime, W_prime))
@@ -110,13 +110,11 @@ def backward_convolution_naive(dout, cache):
 
     # We calculate the backprop using for loops
     for n in range(N):
-
         for i in range(H_prime):
             h_index = stride*i
             for j in range(W_prime):
                 w_index = stride*j
                 for f in range(F):
-
                     dout_slice = dout[n, f, i, j]
                     dw[f] += dout_slice * x_pad[n, :, h_index:h_index+FH, w_index:w_index+FW]
                     db[f] += dout_slice
