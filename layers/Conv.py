@@ -1,7 +1,8 @@
 import numpy as np
 from abc import abstractmethod
-# from utils.cython.im2col import col2im, im2col
+from utils.cython.im2col import im2col, col2im
 from utils.activations import get_activation
+
 
 class Conv2D:
     def __init__(self, num_filters,
@@ -129,7 +130,7 @@ class Conv2DNaive(Conv2D):
         # We save some elements in the cache
         self.cache = (x_pad, A, height, width)
 
-        return A.squeeze()
+        return A
 
     def backward(self, dA, **kwargs):
         """Effectue la rétropropagation
@@ -226,8 +227,7 @@ class Conv2DMat(Conv2D):
         # Ajouter code ici :
         # remplacer la ligne suivante par la fonction d'activation appliquée au tenseur *out*
         # où est la fonction d'activation? ... voir la variable membre *self.activation*...
-        
-        A = out
+        A = self.activation['forward'](out)
         return A
 
     def backward(self, dA, **kwargs):
@@ -323,8 +323,7 @@ class Conv2DCython(Conv2D):
         # Ajouter code ici :
         # remplacer la ligne suivante par la fonction d'activation appliquée au tenseur *out*
         # où est la fonction d'activation? ... voir la variable membre *self.activation*...
-        A = out
-
+        A = self.activation['forward'](out)
 
         return A
 
