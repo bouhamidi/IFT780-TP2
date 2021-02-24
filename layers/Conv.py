@@ -123,10 +123,13 @@ class Conv2DNaive(Conv2D):
                     for f in range(F):
                         A[n, f, i, j] = (self.W[f] * x_pad[n:n+1, :, h_index:h_index+Fheight, w_index:w_index+Fwidth]).sum() + self.b[f]
 
+        # We apply activation
+        A = self.activation['forward'](A)
+
         # We save some elements in the cache
         self.cache = (x_pad, A, height, width)
 
-        return A
+        return A.squeeze()
 
     def backward(self, dA, **kwargs):
         """Effectue la rétropropagation
@@ -145,25 +148,37 @@ class Conv2DNaive(Conv2D):
         _, Fchannel, Fheight, Fwidth = self.W.shape
         dX = np.zeros((N, Fchannel, height, width))
         # TODO
-        # # Ajouter code ici
-        #
-        # # We initialize arrays to store gradients
-        # self.dW = np.zeros(self.W.shape)
-        # self.db = np.zeros(self.b.shape)
-        #
-        # # We calculate the backprop using for loops
-        # for n in range(N):
-        #     for i in range(H_prime):
-        #         h_index = stride*i
-        #         for j in range(W_prime):
-        #             w_index = stride*j
-        #             for f in range(F):
-        #                 dout_slice = dA[n, f, i, j]
-        #                 dw[f] += dout_slice * X_col[n, :, h_index:h_index+FH, w_index:w_index+FW]
-        #                 db[f] += dout_slice
-        #                 dx[n, :, h_index:h_index+FH, w_index:w_index+FW] += dout_slice * self.W[f]
-        #
-        # dx = dx[:, :, 0:(H-pad), 0:(W-pad)]
+        # Ajouter code ici
+        # We update dA according to the activation function
+        dA = self.activation['backward'](out)*dA
+
+        # We store stride and padding values
+        pad_H, pad_W = self.pad
+        stride_H, stride_W = self.stride
+
+        # We initialize arrays to store gradients
+        self.dW = np.zeros(self.W.shape)
+        self.db = np.zeros(self.b.shape)
+        dX_pad = np.zeros(X_col.shape)
+
+        # We calculate the backprop using for loops
+        for n in range(N):
+            for i in range(out_height):
+                h_index = stride_H*i
+                for j in range(out_width):
+                    w_index = stride_W*j
+                    for f in range(F):
+                        dout_slice = dA[n, f, i, j]
+                        self.dW[f] += dout_slice * X_col[n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth]
+                        self.db[f] += dout_slice
+                        dX_pad[n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth] += dout_slice * self.W[f]
+
+        # We add regularization to dW and d
+        self.dW = self.dW + self.reg*self.W
+        self.db = self.db + self.reg*self.b
+
+        # We extract dX by removing padding from dX_pad
+        dX = dX_pad[:, :, 0:(out_height-pad_H), 0:(out_width-pad_W)]
         
         return dX
 
