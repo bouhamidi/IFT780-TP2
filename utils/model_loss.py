@@ -19,6 +19,7 @@ def cross_entropy_loss(scores, t, reg, model_params):
         dScore {ndarray}: dérivée de la loss par rapport aux scores. : Shape (N, C)
         softmax_output {ndarray} : Shape (N, C)
     """
+    scores = scores.squeeze()
     N = scores.shape[0]
     C = scores.shape[1]
     loss = 0
