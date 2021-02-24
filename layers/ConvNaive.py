@@ -53,7 +53,7 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
     # We add the padding to x
     x_pad = np.pad(x, ((0,), (0,), (pad,), (pad,)), mode='constant', constant_values=0)
 
-    # We initialize a list that will store each image convolution
+    # We initialize an array that will store convolutions
     out = np.zeros((N, F, H_prime, W_prime))
 
     # We execute the convolutions of each image with for loops
