@@ -51,7 +51,7 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
     W_prime = int(1 + (W + 2 * pad - FW)/stride)
 
     # We add the padding to x
-    x_pad = np.pad(x, ((0,), (0,), (pad,), (pad,)))
+    x_pad = np.pad(x, ((0,), (0,), (pad,), (pad,)), mode='constant', constant_values=0)
 
     # We initialize a list that will store each image convolution
     out = np.zeros((N, F, H_prime, W_prime))
@@ -103,7 +103,7 @@ def backward_convolution_naive(dout, cache):
     N, C, H, W = x_pad.shape
     F, C, FH, FW = w.shape
 
-    # We initialize a list that will store gradient of each element in the batch
+    # We initialize arrays to store gradients
     dx = np.zeros(x_pad.shape)
     dw = np.zeros(w.shape)
     db = np.zeros(b.shape)
