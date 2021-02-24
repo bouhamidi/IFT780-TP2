@@ -1,8 +1,7 @@
 import numpy as np
 from abc import abstractmethod
-from utils.cython.im2col import col2im, im2col
+# from utils.cython.im2col import col2im, im2col
 from utils.activations import get_activation
-
 
 class Conv2D:
     def __init__(self, num_filters,
@@ -98,10 +97,34 @@ class Conv2DNaive(Conv2D):
 
         N, channel, height, width = X.shape
         F, Fchannel, Fheight, Fwidth = self.W.shape
+
         # TODO
         # Ajouter code ici :
         # remplacer la ligne suivante par du code de convolution
-        A = X
+
+        # We save H' and W' values
+        pad_H, pad_W = self.pad
+        stride_H, stride_W = self.stride
+        H_prime = int(1 + (height + 2 * pad_H - Fheight)/stride_H)
+        W_prime = int(1 + (width + 2 * pad_W - Fwidth)/stride_W)
+
+        # We add the padding to x
+        x_pad = np.pad(X, ((0,), (0,), (pad_H,), (pad_W,)), mode='constant', constant_values=0)
+
+        # We initialize a list that will store each image convolution
+        A = np.zeros((N, F, H_prime, W_prime))
+
+        # We execute the convolutions of each image with for loops
+        for n in range(N):
+            for i in range(H_prime):
+                h_index = stride_H*i
+                for j in range(W_prime):
+                    w_index = stride_W*j
+                    for f in range(F):
+                        A[n, f, i, j] = (self.W[f] * x_pad[n:n+1, :, h_index:h_index+Fheight, w_index:w_index+Fwidth]).sum() + self.b[f]
+
+        # We save some elements in the cache
+        self.cache = (x_pad, A, height, width)
 
         return A
 
@@ -122,7 +145,25 @@ class Conv2DNaive(Conv2D):
         _, Fchannel, Fheight, Fwidth = self.W.shape
         dX = np.zeros((N, Fchannel, height, width))
         # TODO
-        # Ajouter code ici :
+        # # Ajouter code ici
+        #
+        # # We initialize arrays to store gradients
+        # self.dW = np.zeros(self.W.shape)
+        # self.db = np.zeros(self.b.shape)
+        #
+        # # We calculate the backprop using for loops
+        # for n in range(N):
+        #     for i in range(H_prime):
+        #         h_index = stride*i
+        #         for j in range(W_prime):
+        #             w_index = stride*j
+        #             for f in range(F):
+        #                 dout_slice = dA[n, f, i, j]
+        #                 dw[f] += dout_slice * X_col[n, :, h_index:h_index+FH, w_index:w_index+FW]
+        #                 db[f] += dout_slice
+        #                 dx[n, :, h_index:h_index+FH, w_index:w_index+FW] += dout_slice * self.W[f]
+        #
+        # dx = dx[:, :, 0:(H-pad), 0:(W-pad)]
         
         return dX
 
