@@ -27,6 +27,10 @@ def cross_entropy_loss(scores, t, reg, model_params):
     
     # TODO
     # Ajouter code ici
+    
+    # We remove axes of length one from scores
+    scores = scores.squeeze()
+
     # We calculate a matrix with one-hot encoding as rows
     H = np.eye(C)[t]
 
