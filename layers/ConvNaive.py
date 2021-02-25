@@ -45,29 +45,27 @@ def convolution_naive(x, w, b, conv_param, verbose=0):
     # TODO: Implémentez la propagation pour la couche de convolution.           #
     # Astuces: vous pouvez utiliser la fonction np.pad pour le remplissage.     #
     #############################################################################
+   
+    # Zero padding for the x array
+    x_pad = np.pad(x, ((0, 0), (0, 0), (pad, pad), (pad, pad)))
 
-    # We save H' and W' values
-    H_prime = int(1 + (H + 2 * pad - FH)/stride)
-    W_prime = int(1 + (W + 2 * pad - FW)/stride)
+    # Output array initialization
+    H_prime = int(1 + (H + 2 * pad - FH) / stride)
+    W_prime = int(1 + (W + 2 * pad - FW) / stride)
 
-    # We add the padding to x
-    x_pad = np.pad(x, ((0,), (0,), (pad,), (pad,)))
+    out = np.ndarray(shape=(N, F, H_prime, W_prime))
 
-    # We initialize a list that will store each image convolution
-    out = np.zeros((N, F, H_prime, W_prime))
-
-    # We execute the convolutions of each image with for loops
+    # Slide convolution window and calculate output across all input values & filters
     for n in range(N):
-        for i in range(H_prime):
-            h_index = stride*i
-            for j in range(W_prime):
-                w_index = stride*j
-                for f in range(F):
-                    out[n, f, i, j] = (w[f] * x_pad[n:n+1, :, h_index:h_index+FH, w_index:w_index+FW]).sum() + b[f]
-
-    # We save H' and W' in the conv_params
-    conv_param['H_prime'] = H_prime
-    conv_param['W_prime'] = W_prime
+        for f in range(F):
+            out[n][f] += b[f]
+            for row in range(H_prime):
+                for col in range(W_prime):
+                    for c in range(C):
+                        window = x_pad[n][c][row * stride : row * stride + FH,
+                                             col * stride : col * stride + FW]
+                        out[n][f][row][col] += np.sum(np.multiply(w[f][c], window))
+                        
     #############################################################################
     #                             FIN DE VOTRE CODE                             #
     #############################################################################
