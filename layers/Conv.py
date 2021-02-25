@@ -155,6 +155,48 @@ class Conv2DNaive(Conv2D):
         # TODO
         # Ajouter code ici :
         
+        # We extract "padding" and "stride" parameters
+        padding_height, padding_width = self.pad
+        stride_height, stride_width = self.stride
+        
+        # We extract the Filter tensor "W" and Bias vector "b"
+        W = self.W
+        b = self.b
+        
+        # We initialize the gradient tensors "dW" and "db"
+        self.dW = np.zeros(W.shape)
+        self.db = np.zeros(b.shape)
+        
+        # We apply zero-Padding on gradient tensor "dX"
+        padding_2D = self.pad
+        padding_shape = ((0, 0), (0, 0), padding_2D, padding_2D)
+        dX = np.pad(dX, padding_shape, 'constant')
+        
+        # We apply activation
+        dout = self.activation['backward'](out) * dA
+        
+        # Naive Backward Convolution    
+        for n in range(N):
+            for f in range(F):
+                for h_conv in range(out_height):
+                    for w_conv in range(out_width):
+                        dout_slice = dout[n, f, h_conv, w_conv]
+                        # dW = convolution (X_col, dout)
+                        X_slice = X_col[ n, :, h_conv*stride_height:h_conv*stride_height + Fheight, w_conv*stride_width:w_conv*stride_width + Fwidth ]
+                        self.dW[f] += X_slice * dout_slice
+                        # dX = convolution (W, dout)
+                        dX_slice = dX[ n, :, h_conv*stride_height:h_conv*stride_height + Fheight, w_conv*stride_width:w_conv*stride_width + Fwidth ]
+                        dX_slice += W[f] * dout_slice
+                        # db
+                        self.db[f] += dout_slice
+        
+        # We add regularization to the gradient tensors "dW" and "db"
+        self.dW = self.dW + self.reg*W
+        self.db = self.db + self.reg*b
+        
+        # We remove zero-padding
+        dX = dX[:, :, padding_height:height-padding_height, padding_width:width-padding_width]
+        
         return dX
 
 
