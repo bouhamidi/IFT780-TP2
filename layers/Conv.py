@@ -101,7 +101,38 @@ class Conv2DNaive(Conv2D):
         # TODO
         # Ajouter code ici :
         # remplacer la ligne suivante par du code de convolution
-        A = X
+        
+        # We extract "padding" and "stride" parameters
+        padding_height, padding_width = self.pad
+        stride_height, stride_width = self.stride
+        
+        # We extract the Filter tensor "W" and Bias vector "b"
+        W = self.W
+        b = self.b 
+        
+        # We initialize the feature map tensor "out"
+        out_height = int( 1 + (height + 2 * padding_height - Fheight) / stride_height )
+        out_width = int( 1 + (width + 2 * padding_width - Fwidth) / stride_width )
+        out_shape = (N, F, out_height, out_width)
+        out = np.zeros(out_shape)
+
+        # We apply zero-Padding on input tensor "X"
+        padding_2D = self.pad
+        padding_shape = ((0, 0), (0, 0), padding_2D, padding_2D)
+        X_padding = np.pad(X, padding_shape, 'constant')
+
+        # Naive Forward Convolution    
+        for n in range(N):
+            for f in range(F):
+                for h_conv in range(out_height):
+                    for w_conv in range(out_width):
+                        X_slice = X_padding[ n, :, h_conv*stride_height : h_conv*stride_height + Fheight, w_conv*stride_width : w_conv*stride_width + Fwidth ]
+                        out[n, f, h_conv, w_conv] = np.sum(X_slice * W[f]) + b[f]
+                        
+        self.cache = (X_padding, out, height, width)
+        
+        # We apply activation
+        A = self.activation['forward'](out)
 
         return A
 
