@@ -62,18 +62,40 @@ class MaxPool2DNaive(MaxPool2D):
         H_prime = int(1 + (height - pool_h)/stride_h)
         W_prime = int(1 + (width + - pool_w)/stride_w)
 
-        # We initialize an array filled with zeros to store the resuls
+        # We initialize an array filled with zeros to store the output results
         A = np.zeros((N, channel, H_prime, W_prime))
+
+        # We initialize an empty list to store max emplacements
+        max_map = []
 
         # We execute the max pooling of each image with for loops
         for n in range(N):
+            batch_element = []
             for i in range(H_prime):
+                ith_vert_step = []
                 h_index = stride_h*i
                 for j in range(W_prime):
+                    jth_horiz_step = []
                     w_index = stride_w*j
                     for c in range(channel):
-                        A[n, c, i, j] = (X[n:n+1, c, h_index:h_index+pool_h, w_index:w_index+pool_w]).max()
 
+                        x_slice = X[n, c, h_index:h_index+pool_h, w_index:w_index+pool_w]
+
+                        # We save the index of the max emplacement within the slice
+                        ind = np.unravel_index(np.argmax(x_slice, axis=None), x_slice.shape)
+
+                        print(tuple([h_index+ind[0], w_index+ind[1]]))
+                        # We add a one the index in the max_map
+                        jth_horiz_step.append(tuple([h_index+ind[0], w_index+ind[1]]))
+
+                        # We add the max in the output
+                        A[n, c, i, j] = x_slice[ind]
+
+                    ith_vert_step.append(jth_horiz_step)
+                batch_element.append(ith_vert_step)
+            max_map.append(batch_element)
+
+        self.cache = (X, max_map)
         return A
 
     def backward(self, dA, **kwargs):
@@ -88,8 +110,23 @@ class MaxPool2DNaive(MaxPool2D):
         # TODO
         # Ajouter code ici :
         # remplacer la ligne suivante par du code de backprop de convolution
-        dX = dA
 
+        # We retrieve information from the cache
+        X, max_map = self.cache
+        N, channel, height, width = X.shape
+        H_prime, W_prime = dA.shape[2], dA.shape[3]
+
+        # We initialize an array filled with zeros to store dX the output results
+        dX = np.zeros(X.shape)
+
+        # We execute the backward pass with for loops
+        for n in range(N):
+            for i in range(H_prime):
+                for j in range(W_prime):
+                    for c in range(channel):
+
+                        h, w = max_map[n][i][j][c]
+                        dX[n, c, h, w] += dA[n, c, i, j]
 
         return dX
 
