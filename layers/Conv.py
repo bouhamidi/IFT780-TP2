@@ -244,7 +244,9 @@ class Conv2DMat(Conv2D):
         # remplacer la ligne suivante par la fonction d'activation appliquée au tenseur *out*
         # où est la fonction d'activation? ... voir la variable membre *self.activation*...
         
-        A = out
+        # We apply activation
+        A = self.activation['forward'](out)
+        
         return A
 
     def backward(self, dA, **kwargs):
