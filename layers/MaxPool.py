@@ -55,7 +55,28 @@ class MaxPool2DNaive(MaxPool2D):
         # TODO
         # Ajouter code ici :
         # remplacer la ligne suivante par du code de max pooling
-        A = X
+        
+        # We extract "pooling" and "stride" parameters
+        pooling_height, pooling_width = self.pooling
+        stride_height, stride_width = self.stride
+        
+        # We initialize the feature map tensor "out"
+        out_height = int( 1 + (height - pooling_height) / stride_height )
+        out_width = int( 1 + (width - pooling_width) / stride_width )
+        out_shape = (N, channel, out_height, out_width)
+        out = np.zeros(out_shape)
+        
+        # Naive Forward Max-Pooling    
+        for n in range(N):
+            for c in range(channel):
+                for h_pool in range(out_height):
+                    for w_pool in range(out_width):
+                        X_slice = X[ n, c, h_pool*stride_height : h_pool*stride_height + pooling_height, w_pool*stride_width : w_pool*stride_width + pooling_width ]
+                        out[n, c, h_pool, w_pool] = np.max(X_slice)
+                        
+        self.cache = (X, out, height, width)
+        
+        A = out
         
         return A
 
