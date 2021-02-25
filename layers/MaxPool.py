@@ -55,8 +55,25 @@ class MaxPool2DNaive(MaxPool2D):
         # TODO
         # Ajouter code ici :
         # remplacer la ligne suivante par du code de max pooling
-        A = X
-        
+
+        # We save H' and W' values
+        pool_h, pool_w = self.pooling
+        stride_h, stride_w = self.stride
+        H_prime = int(1 + (height - pool_h)/stride_h)
+        W_prime = int(1 + (width + - pool_w)/stride_w)
+
+        # We initialize an array filled with zeros to store the resuls
+        A = np.zeros((N, channel, H_prime, W_prime))
+
+        # We execute the max pooling of each image with for loops
+        for n in range(N):
+            for i in range(H_prime):
+                h_index = stride_h*i
+                for j in range(W_prime):
+                    w_index = stride_w*j
+                    for c in range(channel):
+                        A[n, c, i, j] = (X[n:n+1, c, h_index:h_index+pool_h, w_index:w_index+pool_w]).max()
+
         return A
 
     def backward(self, dA, **kwargs):
