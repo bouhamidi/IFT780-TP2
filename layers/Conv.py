@@ -125,8 +125,10 @@ class Conv2DNaive(Conv2D):
         for n in range(N):
             for f in range(F):
                 for h_conv in range(out_height):
+                    h_index = h_conv*stride_height
                     for w_conv in range(out_width):
-                        X_slice = X_padding[ n, :, h_conv*stride_height : h_conv*stride_height + Fheight, w_conv*stride_width : w_conv*stride_width + Fwidth ]
+                        w_index = w_conv*stride_width
+                        X_slice = X_padding[ n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth ]
                         out[n, f, h_conv, w_conv] = np.sum(X_slice * W[f]) + b[f]
                         
         self.cache = (X_padding, out, height, width)
@@ -175,13 +177,15 @@ class Conv2DNaive(Conv2D):
         for n in range(N):
             for f in range(F):
                 for h_conv in range(out_height):
+                    h_index = h_conv*stride_height
                     for w_conv in range(out_width):
+                        w_index = w_conv*stride_width
                         dout_slice = dout[n, f, h_conv, w_conv]
                         # dW = convolution (X_col, dout)
-                        X_slice = X_col[ n, :, h_conv*stride_height:h_conv*stride_height + Fheight, w_conv*stride_width:w_conv*stride_width + Fwidth ]
+                        X_slice = X_col[ n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth ]
                         self.dW[f] += X_slice * dout_slice
                         # dX = convolution (W, dout)
-                        dX_padding[ n, :, h_conv*stride_height:h_conv*stride_height + Fheight, w_conv*stride_width:w_conv*stride_width + Fwidth ] += W[f] * dout_slice
+                        dX_padding[ n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth ] += W[f] * dout_slice
                         # db
                         self.db[f] += dout_slice
         
