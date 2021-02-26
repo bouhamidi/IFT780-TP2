@@ -123,10 +123,8 @@ class Conv2DNaive(Conv2D):
                 for j in range(W_prime):
                     w_index = stride_W*j
                     for f in range(F):
-                        A[n, f, i, j] = (self.W[f] * x_pad[n:n+1, :, 
-                                         h_index:h_index+Fheight, 
-                                         w_index:w_index+Fwidth]).sum() 
-                                         + self.b[f]
+                        A[n, f, i, j] = (self.W[f] * x_pad[n:n+1, :, h_index:h_index+Fheight,
+                                         w_index:w_index+Fwidth]).sum() + self.b[f]
 
         # We apply activation
         A = self.activation['forward'](A)
