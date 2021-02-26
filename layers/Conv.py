@@ -1,6 +1,6 @@
 import numpy as np
 from abc import abstractmethod
-from utils.cython.im2col import im2col, col2im
+from utils.cython.im2col import col2im, im2col
 from utils.activations import get_activation
 
 
