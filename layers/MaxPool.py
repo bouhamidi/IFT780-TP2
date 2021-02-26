@@ -73,8 +73,10 @@ class MaxPool2DNaive(MaxPool2D):
         for n in range(N):
             for c in range(channel):
                 for h_pool in range(out_height):
+                    h_index = h_pool*stride_height
                     for w_pool in range(out_width):
-                        X_slice = X[ n, c, h_pool*stride_height : h_pool*stride_height + pooling_height, w_pool*stride_width : w_pool*stride_width + pooling_width ]
+                        w_index = w_pool*stride_width
+                        X_slice = X[ n, c, h_index:h_index+pooling_height, w_index:w_index+pooling_width ]
                         out[n, c, h_pool, w_pool] = np.max(X_slice)
                         # We add a tuple of max coordinate arrays through np.unravel_index
                         max_index[n, c, h_pool, w_pool] = np.unravel_index(np.argmax(X_slice), X_slice.shape)
@@ -115,9 +117,11 @@ class MaxPool2DNaive(MaxPool2D):
         for n in range(N):
             for c in range(channel):
                 for h_pool in range(out_height):
+                    h_index = h_pool*stride_height
                     for w_pool in range(out_width):
+                        w_index = w_pool*stride_width
                         max_height,max_width = max_index[n, c, h_pool, w_pool]           
-                        dX[ n, c, h_pool*stride_height + max_height, w_pool*stride_width + max_width ] += dA[n, c, h_pool, w_pool]
+                        dX[ n, c, h_index+max_height, w_index+max_width ] += dA[n, c, h_pool, w_pool]
         
         return dX
 
