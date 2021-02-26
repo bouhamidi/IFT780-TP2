@@ -79,13 +79,17 @@ class MaxPool2DNaive(MaxPool2D):
                     w_index = stride_w*j
                     for c in range(channel):
 
-                        x_slice = X[n, c, h_index:h_index+pool_h, w_index:w_index+pool_w]
+                        x_slice = X[n, c, 
+                                    h_index:h_index+pool_h, 
+                                    w_index:w_index+pool_w]
 
                         # We save the index of the max emplacement within the slice
-                        ind = np.unravel_index(np.argmax(x_slice, axis=None), x_slice.shape)
+                        ind = np.unravel_index(np.argmax(x_slice, axis=None), 
+                                               x_slice.shape)
 
-                        # We add a one the index in the max_map
-                        jth_horiz_step.append(tuple([h_index+ind[0], w_index+ind[1]]))
+                        # We add the index in the max_map
+                        jth_horiz_step.append(tuple([h_index+ind[0], 
+                                                     w_index+ind[1]]))
 
                         # We add the max in the output
                         A[n, c, i, j] = x_slice[ind]
@@ -115,7 +119,7 @@ class MaxPool2DNaive(MaxPool2D):
         N, channel, height, width = X.shape
         H_prime, W_prime = dA.shape[2], dA.shape[3]
 
-        # We initialize an array filled with zeros to store dX the output results
+        # We initialize an array filled with zeros to store the output results into dX
         dX = np.zeros(X.shape)
 
         # We execute the backward pass with for loops
@@ -123,7 +127,6 @@ class MaxPool2DNaive(MaxPool2D):
             for i in range(H_prime):
                 for j in range(W_prime):
                     for c in range(channel):
-
                         h, w = max_map[n][i][j][c]
                         dX[n, c, h, w] += dA[n, c, i, j]
 
