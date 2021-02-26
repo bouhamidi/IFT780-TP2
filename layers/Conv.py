@@ -110,7 +110,8 @@ class Conv2DNaive(Conv2D):
         W_prime = int(1 + (width + 2*pad_W - Fwidth)/stride_W)
 
         # We add the padding to x
-        x_pad = np.pad(X, ((0,), (0,), (pad_H,), (pad_W,)), mode='constant')
+        x_pad = np.pad(X, ((0,), (0,), (pad_H,), (pad_W,)), 
+                       mode='constant', constant_values=0)
 
         # We initialize a list that will store each image convolution
         A = np.zeros((N, F, H_prime, W_prime))
