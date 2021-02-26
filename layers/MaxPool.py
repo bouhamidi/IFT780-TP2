@@ -84,7 +84,6 @@ class MaxPool2DNaive(MaxPool2D):
                         # We save the index of the max emplacement within the slice
                         ind = np.unravel_index(np.argmax(x_slice, axis=None), x_slice.shape)
 
-                        print(tuple([h_index+ind[0], w_index+ind[1]]))
                         # We add a one the index in the max_map
                         jth_horiz_step.append(tuple([h_index+ind[0], w_index+ind[1]]))
 
