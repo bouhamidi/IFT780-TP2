@@ -166,11 +166,7 @@ class Conv2DNaive(Conv2D):
         # We initialize the gradient tensors "dW" and "db"
         self.dW = np.zeros(W.shape)
         self.db = np.zeros(b.shape)
-        
-        # We apply zero-Padding on gradient tensor "dX"
-        padding_2D = self.pad
-        padding_shape = ((0, 0), (0, 0), padding_2D, padding_2D)
-        dX = np.pad(dX, padding_shape, 'constant')
+        dX_padding = np.zeros(X_col.shape)
         
         # We apply activation
         dout = self.activation['backward'](out) * dA
@@ -185,8 +181,7 @@ class Conv2DNaive(Conv2D):
                         X_slice = X_col[ n, :, h_conv*stride_height:h_conv*stride_height + Fheight, w_conv*stride_width:w_conv*stride_width + Fwidth ]
                         self.dW[f] += X_slice * dout_slice
                         # dX = convolution (W, dout)
-                        dX_slice = dX[ n, :, h_conv*stride_height:h_conv*stride_height + Fheight, w_conv*stride_width:w_conv*stride_width + Fwidth ]
-                        dX_slice += W[f] * dout_slice
+                        dX_padding[ n, :, h_conv*stride_height:h_conv*stride_height + Fheight, w_conv*stride_width:w_conv*stride_width + Fwidth ] += W[f] * dout_slice
                         # db
                         self.db[f] += dout_slice
         
@@ -195,7 +190,7 @@ class Conv2DNaive(Conv2D):
         self.db = self.db + self.reg*b
         
         # We remove zero-padding
-        dX = dX[:, :, padding_height:height-padding_height, padding_width:width-padding_width]
+        dX = dX_padding[:, :, padding_height:height+padding_height, padding_width:width+padding_width]
         
         return dX
 
