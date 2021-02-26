@@ -106,11 +106,11 @@ class Conv2DNaive(Conv2D):
         # We save H' and W' values
         pad_H, pad_W = self.pad
         stride_H, stride_W = self.stride
-        H_prime = int(1 + (height + 2 * pad_H - Fheight)/stride_H)
-        W_prime = int(1 + (width + 2 * pad_W - Fwidth)/stride_W)
+        H_prime = int(1 + (height + 2*pad_H - Fheight)/stride_H)
+        W_prime = int(1 + (width + 2*pad_W - Fwidth)/stride_W)
 
         # We add the padding to x
-        x_pad = np.pad(X, ((0,), (0,), (pad_H,), (pad_W,)), mode='constant', constant_values=0)
+        x_pad = np.pad(X, ((0,), (0,), (pad_H,), (pad_W,)), mode='constant')
 
         # We initialize a list that will store each image convolution
         A = np.zeros((N, F, H_prime, W_prime))
@@ -122,7 +122,10 @@ class Conv2DNaive(Conv2D):
                 for j in range(W_prime):
                     w_index = stride_W*j
                     for f in range(F):
-                        A[n, f, i, j] = (self.W[f] * x_pad[n:n+1, :, h_index:h_index+Fheight, w_index:w_index+Fwidth]).sum() + self.b[f]
+                        A[n, f, i, j] = (self.W[f] * x_pad[n:n+1, :, 
+                                         h_index:h_index+Fheight, 
+                                         w_index:w_index+Fwidth]).sum() 
+                                         + self.b[f]
 
         # We apply activation
         A = self.activation['forward'](A)
@@ -150,6 +153,7 @@ class Conv2DNaive(Conv2D):
         dX = np.zeros((N, Fchannel, height, width))
         # TODO
         # Ajouter code ici
+        
         # We update dA according to the activation function
         dA = self.activation['backward'](out)*dA
 
@@ -170,9 +174,13 @@ class Conv2DNaive(Conv2D):
                     w_index = stride_W*j
                     for f in range(F):
                         dout_slice = dA[n, f, i, j]
-                        self.dW[f] += dout_slice * X_col[n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth]
+                        self.dW[f] += dout_slice * X_col[n, :, 
+                                                         h_index:h_index+Fheight, 
+                                                         w_index:w_index+Fwidth]
                         self.db[f] += dout_slice
-                        dX_pad[n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth] += dout_slice * self.W[f]
+                        dX_pad[n, :, 
+                               h_index:h_index+Fheight, 
+                               w_index:w_index+Fwidth] += dout_slice * self.W[f]
 
         # We add regularization to dW and d
         self.dW = self.dW + self.reg*self.W
@@ -227,7 +235,9 @@ class Conv2DMat(Conv2D):
         # Ajouter code ici :
         # remplacer la ligne suivante par la fonction d'activation appliquée au tenseur *out*
         # où est la fonction d'activation? ... voir la variable membre *self.activation*...
+        
         A = self.activation['forward'](out)
+        
         return A
 
     def backward(self, dA, **kwargs):
@@ -323,6 +333,7 @@ class Conv2DCython(Conv2D):
         # Ajouter code ici :
         # remplacer la ligne suivante par la fonction d'activation appliquée au tenseur *out*
         # où est la fonction d'activation? ... voir la variable membre *self.activation*...
+        
         A = self.activation['forward'](out)
 
         return A
