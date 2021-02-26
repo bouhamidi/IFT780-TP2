@@ -120,7 +120,7 @@ def backward_convolution_naive(dout, cache):
                     db[f] += dout_slice
                     dx[n, :, h_index:h_index+FH, w_index:w_index+FW] += dout_slice * w[f]
 
-    dx = dx[:, :, pad:(H-pad), pad:(W-pad)]
+    dx = dx[:, :, pad:H-pad, pad:W-pad]
     #############################################################################
     #                             FIN DE VOTRE CODE                             #
     #############################################################################
