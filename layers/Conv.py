@@ -123,6 +123,7 @@ class Conv2DNaive(Conv2D):
                 for j in range(W_prime):
                     w_index = stride_W*j
                     for f in range(F):
+
                         A[n, f, i, j] = (self.W[f] * x_pad[n:n+1, :, h_index:h_index+Fheight,
                                          w_index:w_index+Fwidth]).sum() + self.b[f]
 
@@ -146,7 +147,6 @@ class Conv2DNaive(Conv2D):
         """
         
         X_col, out, height, width = self.cache
-
         N, F, out_height, out_width = dA.shape
         _, Fchannel, Fheight, Fwidth = self.W.shape
         dX = np.zeros((N, Fchannel, height, width))
@@ -186,7 +186,7 @@ class Conv2DNaive(Conv2D):
         self.db = self.db + self.reg*self.b
 
         # We extract dX by removing padding from dX_pad
-        dX = dX_pad[:, :, pad_H:out_height-pad_H, pad_W:out_width-pad_W]
+        dX = dX_pad[:, :, pad_H:height+pad_H, pad_W:width+pad_W]
         
         return dX
 
