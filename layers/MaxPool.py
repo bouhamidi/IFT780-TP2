@@ -55,7 +55,35 @@ class MaxPool2DNaive(MaxPool2D):
         # TODO
         # Ajouter code ici :
         # remplacer la ligne suivante par du code de max pooling
-        A = X
+        
+        # We extract "pooling" and "stride" parameters
+        pooling_height, pooling_width = self.pooling
+        stride_height, stride_width = self.stride
+        
+        # We initialize an empty dicionary to save the index of max element
+        max_index = {}
+        
+        # We initialize the feature map tensor "out"
+        out_height = int( 1 + (height - pooling_height) / stride_height )
+        out_width = int( 1 + (width - pooling_width) / stride_width )
+        out_shape = (N, channel, out_height, out_width)
+        out = np.zeros(out_shape)
+        
+        # Naive Forward Max-Pooling    
+        for n in range(N):
+            for c in range(channel):
+                for h_pool in range(out_height):
+                    h_index = h_pool*stride_height
+                    for w_pool in range(out_width):
+                        w_index = w_pool*stride_width
+                        X_slice = X[ n, c, h_index:h_index+pooling_height, w_index:w_index+pooling_width ]
+                        out[n, c, h_pool, w_pool] = np.max(X_slice)
+                        # We add a tuple of max coordinate arrays through np.unravel_index
+                        max_index[n, c, h_pool, w_pool] = np.unravel_index(np.argmax(X_slice), X_slice.shape)
+                   
+        self.cache = (X, max_index)
+        
+        A = out
         
         return A
 
@@ -71,9 +99,30 @@ class MaxPool2DNaive(MaxPool2D):
         # TODO
         # Ajouter code ici :
         # remplacer la ligne suivante par du code de backprop de convolution
-        dX = dA
-
-
+        
+        # We extract the input tensor "X" and dictionary "max_index"
+        X, max_index = self.cache
+        
+        # We retrieve shapes
+        N, channel, _, _ = X.shape
+        _, _, out_height, out_width = dA.shape
+        
+        # We extract "stride" parameters
+        stride_height, stride_width = self.stride
+        
+        # We initialize the gradient tensor "dX"
+        dX = np.zeros(X.shape)
+        
+        # Naive Backward Max-Pooling    
+        for n in range(N):
+            for c in range(channel):
+                for h_pool in range(out_height):
+                    h_index = h_pool*stride_height
+                    for w_pool in range(out_width):
+                        w_index = w_pool*stride_width
+                        max_height,max_width = max_index[n, c, h_pool, w_pool]           
+                        dX[ n, c, h_index+max_height, w_index+max_width ] += dA[n, c, h_pool, w_pool]
+        
         return dX
 
 

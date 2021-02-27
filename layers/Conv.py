@@ -101,7 +101,39 @@ class Conv2DNaive(Conv2D):
         # TODO
         # Ajouter code ici :
         # remplacer la ligne suivante par du code de convolution
-        A = X
+        
+        # We extract "padding" and "stride" parameters
+        padding_height, padding_width = self.pad
+        stride_height, stride_width = self.stride
+        
+        # We extract the Filter tensor "W" and Bias vector "b"
+        W = self.W
+        b = self.b 
+        
+        # We initialize the feature map tensor "out"
+        out_height = int( 1 + (height + 2 * padding_height - Fheight) / stride_height )
+        out_width = int( 1 + (width + 2 * padding_width - Fwidth) / stride_width )
+        out_shape = (N, F, out_height, out_width)
+        out = np.zeros(out_shape)
+        
+        # We apply zero-Padding on input tensor "X"
+        padding_shape = ((0,0), (0,0), (padding_height,padding_height), (padding_width,padding_width))
+        X_padding = np.pad(X, padding_shape, mode='constant', constant_values=0)
+
+        # Naive Forward Convolution    
+        for n in range(N):
+            for f in range(F):
+                for h_conv in range(out_height):
+                    h_index = h_conv*stride_height
+                    for w_conv in range(out_width):
+                        w_index = w_conv*stride_width
+                        X_slice = X_padding[ n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth ]
+                        out[n, f, h_conv, w_conv] = np.sum(X_slice * W[f]) + b[f]
+                        
+        self.cache = (X_padding, out, height, width)
+        
+        # We apply activation
+        A = self.activation['forward'](out)
 
         return A
 
@@ -123,6 +155,45 @@ class Conv2DNaive(Conv2D):
         dX = np.zeros((N, Fchannel, height, width))
         # TODO
         # Ajouter code ici :
+        
+        # We extract "padding" and "stride" parameters
+        padding_height, padding_width = self.pad
+        stride_height, stride_width = self.stride
+        
+        # We extract the Filter tensor "W" and Bias vector "b"
+        W = self.W
+        b = self.b
+        
+        # We initialize the gradient tensors "dW" and "db"
+        self.dW = np.zeros(W.shape)
+        self.db = np.zeros(b.shape)
+        dX_padding = np.zeros(X_col.shape)
+        
+        # We apply activation
+        dout = self.activation['backward'](out) * dA
+        
+        # Naive Backward Convolution    
+        for n in range(N):
+            for f in range(F):
+                for h_conv in range(out_height):
+                    h_index = h_conv*stride_height
+                    for w_conv in range(out_width):
+                        w_index = w_conv*stride_width
+                        dout_slice = dout[n, f, h_conv, w_conv]
+                        # dW = convolution (X_col, dout)
+                        X_slice = X_col[ n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth ]
+                        self.dW[f] += X_slice * dout_slice
+                        # dX = convolution (W, dout)
+                        dX_padding[ n, :, h_index:h_index+Fheight, w_index:w_index+Fwidth ] += W[f] * dout_slice
+                        # db
+                        self.db[f] += dout_slice
+        
+        # We add regularization to the gradient tensors "dW" and "db"
+        self.dW = self.dW + self.reg*W
+        self.db = self.db + self.reg*b
+        
+        # We remove zero-padding
+        dX = dX_padding[:, :, padding_height:height+padding_height, padding_width:width+padding_width]
         
         return dX
 
@@ -171,7 +242,9 @@ class Conv2DMat(Conv2D):
         # remplacer la ligne suivante par la fonction d'activation appliquée au tenseur *out*
         # où est la fonction d'activation? ... voir la variable membre *self.activation*...
         
-        A = out
+        # We apply activation
+        A = self.activation['forward'](out)
+        
         return A
 
     def backward(self, dA, **kwargs):
@@ -267,8 +340,9 @@ class Conv2DCython(Conv2D):
         # Ajouter code ici :
         # remplacer la ligne suivante par la fonction d'activation appliquée au tenseur *out*
         # où est la fonction d'activation? ... voir la variable membre *self.activation*...
-        A = out
-
+        
+        # We apply activation
+        A = self.activation['forward'](out)
 
         return A
 
