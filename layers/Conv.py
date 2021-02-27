@@ -115,11 +115,10 @@ class Conv2DNaive(Conv2D):
         out_width = int( 1 + (width + 2 * padding_width - Fwidth) / stride_width )
         out_shape = (N, F, out_height, out_width)
         out = np.zeros(out_shape)
-
+        
         # We apply zero-Padding on input tensor "X"
-        padding_2D = self.pad
-        padding_shape = ((0, 0), (0, 0), padding_2D, padding_2D)
-        X_padding = np.pad(X, padding_shape, 'constant')
+        padding_shape = ((0,0), (0,0), (padding_height,padding_height), (padding_width,padding_width))
+        X_padding = np.pad(X, padding_shape, mode='constant', constant_values=0)
 
         # Naive Forward Convolution    
         for n in range(N):
